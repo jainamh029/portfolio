@@ -9,14 +9,14 @@ const setCharacter = (
 ) => {
   const loader = new GLTFLoader();
   const dracoLoader = new DRACOLoader();
-  dracoLoader.setDecoderPath("/draco/");
+  dracoLoader.setDecoderPath(`${import.meta.env.BASE_URL}draco/`);
   loader.setDRACOLoader(dracoLoader);
 
   const loadCharacter = () => {
     return new Promise<GLTF | null>((resolve, reject) => {
       let character: THREE.Object3D;
       loader.load(
-        "/models/character.glb",
+        `${import.meta.env.BASE_URL}models/character.glb`,
         async (gltf) => {
           character = gltf.scene;
           character.scale.setScalar(1);
