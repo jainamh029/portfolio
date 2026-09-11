@@ -61,6 +61,10 @@ const Scene = () => {
           let character = gltf.scene;
           setChar(character);
           scene.add(character);
+          // Re-sync renderer/camera to the container's real, settled size —
+          // the size captured at mount can be stale if CSS/layout hadn't
+          // finished settling yet (e.g. slower network on first paint).
+          handleResize(renderer, camera, canvasDiv, character);
           headBone = character.getObjectByName("spine006") || null;
           screenLight = character.getObjectByName("screenlight") || null;
           progress.loaded().then(() => {

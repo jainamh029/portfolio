@@ -9,40 +9,38 @@ gsap.registerPlugin(useGSAP);
 
 const Work = () => {
   useGSAP(() => {
-  let translateX: number = 0;
+  const workFlex = document.querySelector(".work-flex") as HTMLElement;
 
-  function setTranslateX() {
-    const box = document.getElementsByClassName("work-box");
-    const rectLeft = document
-      .querySelector(".work-container")!
-      .getBoundingClientRect().left;
-    const rect = box[0].getBoundingClientRect();
-    const parentWidth = box[0].parentElement!.getBoundingClientRect().width;
-    let padding: number =
-      parseInt(window.getComputedStyle(box[0]).padding) / 2;
-    translateX = rect.width * box.length - (rectLeft + parentWidth) + padding;
+  function getTranslateX() {
+    // Full overflow width, directly measured — robust regardless of
+    // margins/padding on ancestors (the old formula under-counted this).
+    return workFlex.scrollWidth - workFlex.clientWidth;
   }
-
-  setTranslateX();
 
   let timeline = gsap.timeline({
     scrollTrigger: {
       trigger: ".work-section",
       start: "top top",
-      end: `+=${translateX}`, // Use actual scroll width
+      end: () => `+=${getTranslateX()}`,
       scrub: true,
       pin: true,
       id: "work",
+      invalidateOnRefresh: true,
     },
   });
 
   timeline.to(".work-flex", {
-    x: -translateX,
+    x: () => -getTranslateX(),
     ease: "none",
   });
 
-  // Clean up (optional, good practice)
+  // Images load asynchronously; re-measure once everything has settled
+  // so the pin's scroll distance always matches the final layout.
+  const onLoad = () => ScrollTrigger.refresh();
+  window.addEventListener("load", onLoad);
+
   return () => {
+    window.removeEventListener("load", onLoad);
     timeline.kill();
     ScrollTrigger.getById("work")?.kill();
   };

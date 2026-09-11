@@ -19,8 +19,8 @@ const setCharacter = (
         `${import.meta.env.BASE_URL}models/character.glb`,
         async (gltf) => {
           character = gltf.scene;
-          character.scale.setScalar(1);
-          character.position.set(0, 11.5, 0);
+          character.scale.setScalar(0.85);
+          character.position.set(0, 10.7, 0);
           await renderer.compileAsync(character, camera, scene);
           character.traverse((child: any) => {
             if (child.isMesh) {
