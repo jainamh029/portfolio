@@ -48,8 +48,13 @@ export function setCharTimeline(
           { z: 75, y: 8.4, duration: 6, delay: 2, ease: "power3.inOut" },
           0
         )
+        // No opacity fade here on purpose: an opacity tween scrubbed against
+        // an arbitrary scroll-position range is exactly what made this
+        // section repeatedly get stuck invisible (see git history — four
+        // separate bugs across this fade and the entrance reveal). The y
+        // slide alone carries the section out of view just as effectively
+        // and can't get stuck at opacity 0.
         .to(".about-section", { y: "30%", duration: 6 }, 0)
-        .to(".about-section", { opacity: 0, delay: 5, duration: 1.5 }, 0)
         .fromTo(
           ".character-model",
           { pointerEvents: "inherit" },
