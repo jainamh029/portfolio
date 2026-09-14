@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import setCharacter from "./utils/character";
 import setLighting from "./utils/lighting";
@@ -19,11 +19,16 @@ const Scene = () => {
   const sceneRef = useRef(new THREE.Scene());
   const { setLoading } = useLoading();
 
-  const [character, setChar] = useState<THREE.Object3D | null>(null);
   useEffect(() => {
     if (canvasDiv.current) {
-      let rect = canvasDiv.current.getBoundingClientRect();
-      let container = { width: rect.width, height: rect.height };
+      // Guards the async GLTF load below: in React 18 StrictMode (dev only)
+      // this effect mounts, cleans up, and mounts again immediately, and
+      // without this flag the first mount's load could resolve after its
+      // own cleanup ran and add a second character into the shared scene.
+      let cancelled = false;
+      let rafId = 0;
+      const rect = canvasDiv.current.getBoundingClientRect();
+      const container = { width: rect.width, height: rect.height };
       const aspect = container.width / container.height;
       const scene = sceneRef.current;
 
@@ -44,39 +49,39 @@ const Scene = () => {
       camera.updateProjectionMatrix();
 
       let headBone: THREE.Object3D | null = null;
-      let screenLight: any | null = null;
+      let screenLight: THREE.Object3D | null = null;
       let mixer: THREE.AnimationMixer;
 
       const clock = new THREE.Clock();
 
       const light = setLighting(scene);
-      let progress = setProgress((value) => setLoading(value));
+      const progress = setProgress((value) => setLoading(value));
       const { loadCharacter } = setCharacter(renderer, scene, camera);
 
+      let onResize: (() => void) | null = null;
       loadCharacter().then((gltf) => {
-        if (gltf) {
-          const animations = setAnimations(gltf);
-          hoverDivRef.current && animations.hover(gltf, hoverDivRef.current);
-          mixer = animations.mixer;
-          let character = gltf.scene;
-          setChar(character);
-          scene.add(character);
-          // Re-sync renderer/camera to the container's real, settled size —
-          // the size captured at mount can be stale if CSS/layout hadn't
-          // finished settling yet (e.g. slower network on first paint).
-          handleResize(renderer, camera, canvasDiv, character);
-          headBone = character.getObjectByName("spine006") || null;
-          screenLight = character.getObjectByName("screenlight") || null;
-          progress.loaded().then(() => {
-            setTimeout(() => {
-              light.turnOnLights();
-              animations.startIntro();
-            }, 2500);
-          });
-          window.addEventListener("resize", () =>
-            handleResize(renderer, camera, canvasDiv, character)
-          );
-        }
+        if (cancelled || !gltf) return;
+        const animations = setAnimations(gltf);
+        if (hoverDivRef.current) animations.hover(gltf, hoverDivRef.current);
+        mixer = animations.mixer;
+        const character = gltf.scene;
+        scene.add(character);
+        // Re-sync renderer/camera to the container's real, settled size —
+        // the size captured at mount can be stale if CSS/layout hadn't
+        // finished settling yet (e.g. slower network on first paint).
+        handleResize(renderer, camera, canvasDiv, character);
+        headBone = character.getObjectByName("spine006") || null;
+        screenLight = character.getObjectByName("screenlight") || null;
+        progress.loaded().then(() => {
+          if (cancelled) return;
+          setTimeout(() => {
+            if (cancelled) return;
+            light.turnOnLights();
+            animations.startIntro();
+          }, 2500);
+        });
+        onResize = () => handleResize(renderer, camera, canvasDiv, character);
+        window.addEventListener("resize", onResize);
       });
 
       let mouse = { x: 0, y: 0 },
@@ -102,16 +107,15 @@ const Scene = () => {
         });
       };
 
-      document.addEventListener("mousemove", (event) => {
-        onMouseMove(event);
-      });
+      document.addEventListener("mousemove", onMouseMove);
       const landingDiv = document.getElementById("landingDiv");
       if (landingDiv) {
         landingDiv.addEventListener("touchstart", onTouchStart);
         landingDiv.addEventListener("touchend", onTouchEnd);
       }
       const animate = () => {
-        requestAnimationFrame(animate);
+        if (cancelled) return;
+        rafId = requestAnimationFrame(animate);
         if (headBone) {
           handleHeadRotation(
             headBone,
@@ -131,17 +135,19 @@ const Scene = () => {
       };
       animate();
       return () => {
+        cancelled = true;
+        cancelAnimationFrame(rafId);
         clearTimeout(debounce);
         scene.clear();
         renderer.dispose();
-        window.removeEventListener("resize", () =>
-          handleResize(renderer, camera, canvasDiv, character!)
-        );
+        if (onResize) {
+          window.removeEventListener("resize", onResize);
+        }
         if (canvasDiv.current) {
           canvasDiv.current.removeChild(renderer.domElement);
         }
+        document.removeEventListener("mousemove", onMouseMove);
         if (landingDiv) {
-          document.removeEventListener("mousemove", onMouseMove);
           landingDiv.removeEventListener("touchstart", onTouchStart);
           landingDiv.removeEventListener("touchend", onTouchEnd);
         }

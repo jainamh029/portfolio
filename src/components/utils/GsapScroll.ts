@@ -49,7 +49,7 @@ export function setCharTimeline(
           0
         )
         .to(".about-section", { y: "30%", duration: 6 }, 0)
-        .to(".about-section", { opacity: 0, delay: 3, duration: 2 }, 0)
+        .to(".about-section", { opacity: 0, delay: 5, duration: 1.5 }, 0)
         .fromTo(
           ".character-model",
           { pointerEvents: "inherit" },

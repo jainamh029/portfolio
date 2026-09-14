@@ -2,8 +2,8 @@ import * as THREE from "three";
 import { GLTF } from "three-stdlib";
 
 const setAnimations = (gltf: GLTF) => {
-  let character = gltf.scene;
-  let mixer = new THREE.AnimationMixer(character);
+  const character = gltf.scene;
+  const mixer = new THREE.AnimationMixer(character);
   let idleAction: THREE.AnimationAction | null = null;
 
   if (gltf.animations?.length) {

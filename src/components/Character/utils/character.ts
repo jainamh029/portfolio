@@ -1,6 +1,5 @@
 import * as THREE from "three";
 import { DRACOLoader, GLTF, GLTFLoader } from "three-stdlib";
-import { setCharTimeline, setAllTimeline } from "../../utils/GsapScroll";
 
 const setCharacter = (
   renderer: THREE.WebGLRenderer,
@@ -22,17 +21,15 @@ const setCharacter = (
           character.scale.setScalar(0.85);
           character.position.set(0, 10.7, 0);
           await renderer.compileAsync(character, camera, scene);
-          character.traverse((child: any) => {
-            if (child.isMesh) {
+          character.traverse((child: THREE.Object3D) => {
+            if ((child as THREE.Mesh).isMesh) {
               const mesh = child as THREE.Mesh;
-              child.castShadow = true;
-              child.receiveShadow = true;
+              mesh.castShadow = true;
+              mesh.receiveShadow = true;
               mesh.frustumCulled = true;
             }
           });
           resolve(gltf);
-          setCharTimeline(character, camera);
-          setAllTimeline();
           dracoLoader.dispose();
         },
         undefined,

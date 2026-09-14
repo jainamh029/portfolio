@@ -18,7 +18,7 @@ const Work = () => {
     return workFlex.scrollWidth - workFlex.clientWidth;
   }
 
-  let timeline = gsap.timeline({
+  const timeline = gsap.timeline({
     scrollTrigger: {
       trigger: ".work-section",
       start: "top top",
