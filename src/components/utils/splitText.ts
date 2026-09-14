@@ -10,6 +10,8 @@ interface ParaElement extends HTMLElement {
 
 gsap.registerPlugin(ScrollTrigger, ScrollSmoother, SplitText);
 
+let refreshListenerAttached = false;
+
 export default function setSplitText() {
   ScrollTrigger.config({ ignoreMobileResize: true });
   if (window.innerWidth < 900) return;
@@ -36,6 +38,11 @@ export default function setSplitText() {
 
   paras.forEach((para: ParaElement) => {
     para.classList.add("visible");
+    // Once a reveal has actually finished, leave it alone. Re-splitting and
+    // recreating the tween re-renders its {autoAlpha:0} "from" state
+    // immediately (immediateRender defaults to true), flashing already-
+    // visible text back to invisible for no reason on every later refresh.
+    if (para.anim && para.anim.progress() === 1) return;
     if (para.anim) {
       para.anim.progress(1).kill();
       para.split?.revert();
@@ -64,6 +71,7 @@ export default function setSplitText() {
     );
   });
   titles.forEach((title: ParaElement) => {
+    if (title.anim && title.anim.progress() === 1) return;
     if (title.anim) {
       title.anim.progress(1).kill();
       title.split?.revert();
@@ -91,5 +99,17 @@ export default function setSplitText() {
     );
   });
 
-  ScrollTrigger.addEventListener("refresh", () => setSplitText());
+  // Register this exactly once, ever. setSplitText() re-runs on every
+  // ScrollTrigger refresh (window resize, other components' load-triggered
+  // refreshes, ScrollSmoother syncing) — registering the listener here
+  // unconditionally added a NEW listener on every one of those re-runs,
+  // so each subsequent refresh fired setSplitText() one extra time per
+  // prior refresh (1, 2, 4, 8, ...). That cascade re-created every
+  // reveal tween (and re-rendered its invisible "from" state) far faster
+  // than the 1s reveal could finish, which is what left text stuck
+  // invisible on real page loads with several early refreshes.
+  if (!refreshListenerAttached) {
+    refreshListenerAttached = true;
+    ScrollTrigger.addEventListener("refresh", () => setSplitText());
+  }
 }
