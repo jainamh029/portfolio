@@ -24,7 +24,15 @@ export default function setSplitText() {
   // height) could resolve *after* "top top" on a short section, which is
   // exactly what left the About paragraph invisible on a fresh visit.
   const TriggerStart = window.innerWidth <= 1024 ? "top 60%" : "top 75%";
-  const ToggleAction = "play pause resume reverse";
+  // The reveal tween runs on real time (duration: 1), not scroll-scrub, so a
+  // fast scroll can cross this trigger's start AND end within a single
+  // ScrollTrigger update tick. "play pause resume reverse" then fires
+  // onEnter (play) immediately followed by onLeave (pause) in that same
+  // tick, freezing the tween at progress 0 — i.e. permanently opacity:0 —
+  // before it has had any real time to animate. "play none none none"
+  // reveals once and never pauses/reverses it, so a fast scroll-through
+  // still finishes the reveal instead of getting stuck invisible.
+  const ToggleAction = "play none none none";
 
   paras.forEach((para: ParaElement) => {
     para.classList.add("visible");
