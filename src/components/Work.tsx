@@ -2,6 +2,7 @@ import "./styles/Work.css";
 import WorkImage from "./WorkImage";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { ScrollSmoother } from "gsap/ScrollSmoother";
 import { useGSAP } from "@gsap/react";
 import { projects } from "../data/projects";
 
@@ -36,7 +37,14 @@ const Work = () => {
 
   // Images load asynchronously; re-measure once everything has settled
   // so the pin's scroll distance always matches the final layout.
-  const onLoad = () => ScrollTrigger.refresh();
+  // ScrollSmoother keeps its own internal proxy of total scrollable
+  // height — a plain ScrollTrigger.refresh() alone can leave it stale
+  // after a pin's distance changes, desyncing nav-link scrollTo targets
+  // from where content actually lands. Refresh both explicitly.
+  const onLoad = () => {
+    ScrollTrigger.refresh();
+    ScrollSmoother.get()?.refresh();
+  };
   window.addEventListener("load", onLoad);
 
   return () => {

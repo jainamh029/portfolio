@@ -16,7 +16,14 @@ export default function setSplitText() {
   const paras: NodeListOf<ParaElement> = document.querySelectorAll(".para");
   const titles: NodeListOf<ParaElement> = document.querySelectorAll(".title");
 
-  const TriggerStart = window.innerWidth <= 1024 ? "top 60%" : "20% 60%";
+  // "top X%" fires once the section's top has scrolled to X% down the
+  // viewport. Must resolve before "top top" (0%) — that's what nav-link
+  // clicks and direct-jump scrolling target — or the reveal never plays
+  // and the text sits at its pre-animation opacity:0 forever. The old
+  // desktop value ("20% 60%", a two-axis threshold keyed to section
+  // height) could resolve *after* "top top" on a short section, which is
+  // exactly what left the About paragraph invisible on a fresh visit.
+  const TriggerStart = window.innerWidth <= 1024 ? "top 60%" : "top 75%";
   const ToggleAction = "play pause resume reverse";
 
   paras.forEach((para: ParaElement) => {
