@@ -45,7 +45,7 @@ const Career = () => {
                 <h4>Investment Banking Analyst</h4>
                 <h5>TechMentee, Inc.</h5>
               </div>
-              <h3>NOW</h3>
+              <h3>2026</h3>
             </div>
             <p>
               Owned sourcing and evaluation of early-stage opportunities
