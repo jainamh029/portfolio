@@ -46,17 +46,32 @@
   }
 }
 @media only screen and (min-width: 1025px) {
+  /* The section is scrolled through, not pinned, so its whole visible
+     window used to be a single 100vh block — GSAP's scroll-scrubbed
+     transforms (and ScrollSmoother's momentum) could carry the viewport
+     across that entire window in one normal scroll motion, skipping the
+     text before it ever landed in a readable position. Making the
+     section tall and sticking the actual content to the viewport for
+     that extra height gives it real, un-skippable dwell time: the text
+     can only leave once the wrapper's full height has been scrolled. */
   .about-section {
+    display: block;
     width: var(--cWidth);
-    justify-content: right;
     max-width: 1920px;
-    height: var(--vh);
+    height: calc(var(--vh) * 3.5);
     padding: 0px;
     opacity: 1;
   }
   .about-me {
+    position: sticky;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: var(--vh);
     padding: 0px;
     width: 50%;
+    margin-left: auto;
   }
   .about-me p {
     font-size: 1.9vw;

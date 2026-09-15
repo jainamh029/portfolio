@@ -52,9 +52,12 @@ export function setCharTimeline(
         // an arbitrary scroll-position range is exactly what made this
         // section repeatedly get stuck invisible (see git history — four
         // separate bugs across this fade and the entrance reveal). The y
-        // slide alone carries the section out of view just as effectively
-        // and can't get stuck at opacity 0.
-        .to(".about-section", { y: "30%", duration: 6 }, 0)
+        // slide alone carries the text out of view just as effectively and
+        // can't get stuck at opacity 0. Targets .about-me (the visible
+        // content), not .about-section (the tall sticky-scroll wrapper) —
+        // transforming the wrapper would change the containing block for
+        // its sticky child and break the sticky-while-scrolling effect.
+        .to(".about-me", { y: "30%", duration: 6 }, 0)
         .fromTo(
           ".character-model",
           { pointerEvents: "inherit" },
