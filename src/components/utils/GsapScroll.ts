@@ -17,8 +17,20 @@ export function setCharTimeline(
   const tl2 = gsap.timeline({
     scrollTrigger: {
       trigger: ".about-section",
-      start: "center 55%",
-      end: "bottom top",
+      // Pinned (like the "work" carousel below), not just scrolled through.
+      // A plain scrub-through range — even a very tall one — is still just
+      // normal document scroll, and ScrollSmoother's momentum/inertia can
+      // coast straight across it in one flick regardless of how much
+      // distance it spans. A GSAP pin actively holds the section in place
+      // and consumes scroll input until its own internal distance is
+      // exhausted, so momentum literally cannot skip past it — this is
+      // what actually fixes the section being invisible on a normal (or
+      // fast) scroll, where four earlier attempts at retiming animations
+      // or lengthening scroll distance did not.
+      start: "top top",
+      end: () => `+=${window.innerHeight * 2.2}`,
+      pin: true,
+      id: "about",
       scrub: true,
       invalidateOnRefresh: true,
     },
@@ -50,13 +62,9 @@ export function setCharTimeline(
         )
         // No opacity fade here on purpose: an opacity tween scrubbed against
         // an arbitrary scroll-position range is exactly what made this
-        // section repeatedly get stuck invisible (see git history — four
-        // separate bugs across this fade and the entrance reveal). The y
+        // section repeatedly get stuck invisible (see git history). The y
         // slide alone carries the text out of view just as effectively and
-        // can't get stuck at opacity 0. Targets .about-me (the visible
-        // content), not .about-section (the tall sticky-scroll wrapper) —
-        // transforming the wrapper would change the containing block for
-        // its sticky child and break the sticky-while-scrolling effect.
+        // can't get stuck at opacity 0.
         .to(".about-me", { y: "30%", duration: 6 }, 0)
         .fromTo(
           ".character-model",
