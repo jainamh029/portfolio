@@ -29,14 +29,15 @@ const Career = () => {
           <div className="career-info-box">
             <div className="career-info-in">
               <div className="career-role">
-                <h4>Quantitative Research Analyst</h4>
+                <h4>Quantitative Research Intern</h4>
                 <h5>Bombay Stock Exchange</h5>
               </div>
               <h3>2022</h3>
             </div>
             <p>
-              Owned fundamental and quantitative research on 30+ companies
-              and automated research and surveillance workflows in Python.
+              Researched 30+ companies using fundamental and quantitative
+              analysis and automated research and surveillance workflows in
+              Python.
             </p>
           </div>
           <div className="career-info-box">
